@@ -1,0 +1,21 @@
+{
+    "name": "2023_restowaves_testtask",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "author": "Hudymenko Yevhenii",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "googleapis": "^129.0.0",
+        "pg": "^8.11.3"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.2"
+    }
+}
