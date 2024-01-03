@@ -13,7 +13,7 @@ class GoogleSheetsController {
         return { auth, client, googleSheets };
     }
 
-    async accessGoogleSheets() {
+    async getGoogleSheets() {
         const { auth, googleSheets } = await this.authGoogleSheets();
         // Get spreadSheet titles
         const data = await googleSheets.spreadsheets.get({
@@ -23,14 +23,39 @@ class GoogleSheetsController {
         return data.data.sheets;
     }
 
-    async getGoogleSheetsRows(modelName) {
+    async getGoogleSheetsRows(sheetName) {
         const { auth, googleSheets } = await this.authGoogleSheets();
         const getRows = await googleSheets.spreadsheets.values.get({
             auth,
             spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
-            range: modelName,
+            range: sheetName,
         });
         return getRows.data.values;
+    }
+
+    async parseSheet(sheetName) {
+        // get rows of certain sheet for parsing
+        let sheet = await this.getGoogleSheetsRows(sheetName);
+
+        // clear extra rows that we don't need to parse
+        for (let index = 0; index < sheet.length; index++) {
+            if (sheet[index][0] === "Імя ") {
+                sheet.splice(0, index);
+            }
+        }
+        let parsedSheet = new Array();
+        // width loop
+        let tempArr;
+        for (let i = 1; i < sheet[0].length; i++) {
+            tempArr = new Map();
+            // height loop
+            for (let j = 0; j < sheet.length; j++) {
+                tempArr.set(sheet[j][0], sheet[j][i]);
+            }
+            parsedSheet.push(tempArr);
+        }
+
+        return parsedSheet;
     }
 }
 

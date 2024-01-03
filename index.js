@@ -18,8 +18,7 @@ const start = async () => {
         app.listen(PORT, () => {
             console.log("Server works on port " + PORT);
         });
-        const gShController = require("./controllers/gsheetsController");
-        console.log(await gShController.accessGoogleSheets());
+        console.log(await require("./database/dbController").getGoogleData());
     } catch (error) {
         console.log(error);
     }
