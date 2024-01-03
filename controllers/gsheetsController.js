@@ -50,7 +50,9 @@ class GoogleSheetsController {
             tempArr = new Map();
             // height loop
             for (let j = 0; j < sheet.length; j++) {
-                tempArr.set(sheet[j][0], sheet[j][i]);
+                if (sheet[j][i] != undefined && sheet[j][i] !== "") {
+                    tempArr.set(sheet[j][0], sheet[j][i]);
+                }
             }
             parsedSheet.push(tempArr);
         }
