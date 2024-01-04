@@ -170,17 +170,29 @@ class databaseController {
 
     async getItemOne(itemId) {
         return (
-            await db.query("SELECT * FROM item WHERE itemId = $1", [itemId])
+            await db.query("SELECT * FROM item WHERE item_id = $1", [itemId])
         ).rows[0];
     }
 
     async updateItem(itemId, itemName) {
         return (
             await db.query(
-                "UPDATE item SET itemName = $1 WHERE itemId = $2 RETURNING *",
+                "UPDATE item SET item_name = $1 WHERE item_id = $2 RETURNING *",
                 [itemName, itemId]
             )
         ).rows[0];
+    }
+
+    async getItemWithSize(size) {
+        const items = await db.query(
+            `SELECT item.*
+            FROM item
+            JOIN sizes_items ON item.item_id = sizes_items.item_id
+            JOIN size ON sizes_items.size_id = size.id
+            WHERE size.shoe_size_ua = $1`,
+            [size]
+        );
+        return items.rows;
     }
 }
 

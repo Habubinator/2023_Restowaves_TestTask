@@ -18,7 +18,13 @@ const start = async () => {
         app.listen(PORT, () => {
             console.log("Server works on port " + PORT);
         });
-        await require("./database/dbController").updateDBData();
+        require("./database/dbController")
+            .updateDBData()
+            .then(() => {
+                setTimeout(() => {
+                    require("./database/dbController").updateDBData();
+                }, process.env.PING_INTERVAL_IN_SECONDS * 1000);
+            });
     } catch (error) {
         console.log(error);
     }
