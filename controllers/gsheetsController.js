@@ -3,7 +3,7 @@ const { google } = require("googleapis");
 class GoogleSheetsController {
     async authGoogleSheets() {
         const auth = new google.auth.GoogleAuth({
-            keyFile: "credentials.json",
+            credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
             scopes: "https://www.googleapis.com/auth/spreadsheets",
         });
         // Instance for Auth to google APIs
@@ -44,17 +44,17 @@ class GoogleSheetsController {
             }
         }
         let parsedSheet = new Array();
-        // width loop
-        let tempArr;
+        // width (rows) loop
+        let tempMap;
         for (let i = 1; i < sheet[0].length; i++) {
-            tempArr = new Map();
-            // height loop
+            tempMap = new Map();
+            // height (columns) loop
             for (let j = 0; j < sheet.length; j++) {
                 if (sheet[j][i] != undefined && sheet[j][i] !== "") {
-                    tempArr.set(sheet[j][0], sheet[j][i]);
+                    tempMap.set(sheet[j][0].trim(), sheet[j][i].trim());
                 }
             }
-            parsedSheet.push(tempArr);
+            parsedSheet.push(tempMap);
         }
 
         return parsedSheet;

@@ -18,7 +18,7 @@ const start = async () => {
         app.listen(PORT, () => {
             console.log("Server works on port " + PORT);
         });
-        console.log(await require("./database/dbController").getGoogleData());
+        await require("./database/dbController").updateDBData();
     } catch (error) {
         console.log(error);
     }

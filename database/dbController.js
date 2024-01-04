@@ -29,42 +29,139 @@ class databaseController {
                 await gShController.parseSheet(sheet.properties.title)
             );
         }
-
         return this.sheets;
     }
 
+    async updateDBData() {
+        this.getGoogleData().then(() => {
+            this.sheets.forEach(async (value, key, map) => {
+                let modelName = key;
+                let modelId = await this.addModel(modelName);
+                let brandId = await this.checkBrand(modelName);
+
+                // iterating for each item map values
+                for (let parsedMap of value) {
+                    const columns = ["Імя", "Ціна", "Код товару"]; // filter for required fields\dynamic sizes values
+                    this.addItem(
+                        parsedMap.get(columns[2]),
+                        parsedMap.get(columns[0]),
+                        parsedMap.get(columns[1]),
+                        modelId,
+                        brandId
+                    );
+
+                    const sizes = new Array();
+                    // iterating for sizes value
+                    for (let [key, value] of parsedMap) {
+                        if (!columns.includes(key)) {
+                            sizes.push(key);
+                        }
+                    }
+                    sizes.forEach(async (value) => {
+                        let sizeId = await this.addSize(value);
+                        this.addSizeItem(sizeId, parsedMap.get(columns[2]));
+                    });
+                }
+            });
+        });
+    }
+
     async addModel(modelName) {
-        return (
-            await db.query(
-                "INSERT INTO model (modelName) VALUES ($1) RETURNING *",
+        const existingModel = await db.query(
+            "SELECT * FROM model WHERE model_name = $1",
+            [modelName]
+        );
+
+        if (existingModel.rows.length > 0) {
+            // if model exist, return that model id
+            return existingModel.rows[0].id;
+        } else {
+            // if model don't exist, make new one and return it's id
+            const newModel = await db.query(
+                "INSERT INTO model (model_name) VALUES ($1) RETURNING *",
                 [modelName]
-            )
-        ).rows[0];
+            );
+            return newModel.rows[0].id;
+        }
     }
 
     async addBrand(brandName) {
-        return (
-            await db.query(
-                "INSERT INTO brand (brandName) VALUES ($1) RETURNING *",
+        const existingBrand = await db.query(
+            "SELECT * FROM brand WHERE brand_name = $1",
+            [brandName]
+        );
+
+        if (existingBrand.rows.length > 0) {
+            // if brand exist, return that brand id
+            return existingBrand.rows[0].id;
+        } else {
+            // if brand don't exist, make new one and return it's id
+            const newBrand = await db.query(
+                "INSERT INTO brand (brand_name) VALUES ($1) RETURNING *",
                 [brandName]
-            )
-        ).rows[0];
+            );
+            return newBrand.rows[0].id;
+        }
     }
+
+    async checkBrand(modelName) {
+        const existingBrand = await db.query("SELECT * FROM brand");
+        for (let i = 0; i < existingBrand.rows.length; i++) {
+            if (modelName.indexOf(existingBrand.rows[i].brand_name) != -1) {
+                return existingBrand.rows[i].id;
+            }
+        }
+        return null;
+    }
+
     async addSize(size) {
-        return (
-            await db.query(
-                "INSERT INTO size (shoeSizeUA) VALUES ($1) RETURNING *",
+        const existingSize = await db.query(
+            "SELECT * FROM size WHERE shoe_size_ua = $1",
+            [size]
+        );
+
+        if (existingSize.rows.length > 0) {
+            return existingSize.rows[0].id;
+        } else {
+            const newSize = await db.query(
+                "INSERT INTO size (shoe_size_ua) VALUES ($1) RETURNING *",
                 [size]
-            )
-        ).rows[0];
+            );
+            return newSize.rows[0].id;
+        }
     }
+
     async addItem(itemId, itemName, itemPrice, modelId, brandId) {
-        return (
-            await db.query(
-                "INSERT INTO item (itemId, itemName, itemPrice, modelId, brandId) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+        const existingItem = await db.query(
+            "SELECT * FROM item WHERE item_id = $1",
+            [itemId]
+        );
+
+        if (existingItem.rows.length > 0) {
+            return existingItem.rows[0].item_id;
+        } else {
+            const newItem = await db.query(
+                "INSERT INTO item (item_id, item_name, item_price, model_id, brand_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
                 [itemId, itemName, itemPrice, modelId, brandId]
-            )
-        ).rows[0];
+            );
+            return newItem.rows[0].item_id;
+        }
+    }
+
+    async addSizeItem(size_id, item_id) {
+        const existingSizeItem = await db.query(
+            "SELECT * FROM sizes_items WHERE size_id = $1 AND item_id = $2",
+            [size_id, item_id]
+        );
+        if (existingSizeItem.rows.length > 0) {
+            return existingSizeItem.rows[0].id;
+        } else {
+            const newSize = await db.query(
+                "INSERT INTO sizes_items (size_id, item_id) VALUES ($1, $2) RETURNING *",
+                [size_id, item_id]
+            );
+            return newSize.rows[0].id;
+        }
     }
 
     async getItemAll() {
